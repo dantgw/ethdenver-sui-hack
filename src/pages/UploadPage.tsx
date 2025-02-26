@@ -1,4 +1,5 @@
 import { useCurrentAccount } from "@mysten/dapp-kit";
+import JSZip from "jszip";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -10,9 +11,8 @@ export function UploadPage() {
   const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(
     null,
   );
-  const [selectedGameContent, setSelectedGameContent] = useState<File | null>(
-    null,
-  );
+  const [selectedGameContent, setSelectedGameContent] =
+    useState<FileList | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -24,12 +24,12 @@ export function UploadPage() {
     event: React.ChangeEvent<HTMLInputElement>,
     fileType: "cover" | "content",
   ) => {
-    const file = event.target.files?.[0];
-    if (file) {
+    const files = event.target.files;
+    if (files) {
       if (fileType === "cover") {
-        setSelectedCoverImage(file);
+        setSelectedCoverImage(files[0]);
       } else {
-        setSelectedGameContent(file);
+        setSelectedGameContent(files);
       }
     }
   };
@@ -58,14 +58,19 @@ export function UploadPage() {
       coverImageReader.readAsDataURL(selectedCoverImage);
       const coverImageData = (await coverImagePromise) as string;
 
-      // Upload game content to Walrus
-      const gameContentReader = new FileReader();
-      const gameContentPromise = new Promise((resolve, reject) => {
-        gameContentReader.onload = () => resolve(gameContentReader.result);
-        gameContentReader.onerror = reject;
-      });
-      gameContentReader.readAsDataURL(selectedGameContent);
-      const gameContentData = (await gameContentPromise) as string;
+      // Create a zip file containing all game content
+      const zip = new JSZip();
+      const gameFiles = Array.from(selectedGameContent);
+
+      // Add all files to the zip
+      for (const file of gameFiles) {
+        const relativePath = file.webkitRelativePath || file.name;
+        const fileData = await file.arrayBuffer();
+        zip.file(relativePath, fileData);
+      }
+
+      // Generate the zip file
+      const gameZipBlob = await zip.generateAsync({ type: "blob" });
 
       const PUBLISHER = "https://publisher.walrus-testnet.walrus.space";
       const address = currentAccount.address;
@@ -80,13 +85,11 @@ export function UploadPage() {
       });
       const coverImageResult = await coverImageWalrusResponse.json();
 
-      // Upload game content
-      const gameContentResponse = await fetch(gameContentData);
-      const gameContentBlob = await gameContentResponse.blob();
+      // Upload zipped game content
       const gameContentUrl = `${PUBLISHER}/v1/blobs?send_object_to=${address}`;
       const gameContentWalrusResponse = await fetch(gameContentUrl, {
         method: "PUT",
-        body: gameContentBlob,
+        body: gameZipBlob,
       });
       const gameContentResult = await gameContentWalrusResponse.json();
 
@@ -94,9 +97,9 @@ export function UploadPage() {
       console.log("Cover image upload result:", coverImageResult);
       console.log("Game content upload result:", gameContentResult);
 
-      // Navigate to the blob page using the cover image blob ID
-      if (coverImageResult.id) {
-        navigate(`/blob/${coverImageResult.id}`);
+      // Navigate to the blob page using the game content blob ID
+      if (gameContentResult.id) {
+        navigate(`/blob/${gameContentResult.id}`);
       }
 
       // Reset form after successful upload
@@ -213,16 +216,20 @@ export function UploadPage() {
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <p className="mb-2 text-sm text-gray-400">
                     <span className="font-semibold">
-                      Click to upload game content
+                      Click to upload Unity build folder
                     </span>
                   </p>
                   <p className="text-xs text-gray-400">
-                    Any file type up to 100MB
+                    Select your Unity build folder
                   </p>
                 </div>
                 <input
                   id="game-upload"
                   type="file"
+                  // @ts-ignore - webkitdirectory and directory are valid but not in TypeScript's types
+                  webkitdirectory="true"
+                  directory=""
+                  multiple
                   className="hidden"
                   onChange={(e) => handleFileSelect(e, "content")}
                 />
@@ -231,7 +238,7 @@ export function UploadPage() {
             {selectedGameContent && (
               <div className="mt-2 flex items-center justify-between bg-[#252525] p-4 rounded-lg">
                 <span className="text-sm text-gray-300">
-                  {selectedGameContent.name}
+                  {selectedGameContent.length} files selected
                 </span>
                 <button
                   onClick={() => setSelectedGameContent(null)}
