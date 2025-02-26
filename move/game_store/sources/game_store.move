@@ -437,6 +437,9 @@ module game_store::store {
         let game = table::borrow(&store.games, game_id);
         game.developer == address
     }
+    #[test_only]
+    public fun init_for_testing(ctx: &mut TxContext) {
+        init(STORE {}, ctx)
+    } 
 }
-
 
