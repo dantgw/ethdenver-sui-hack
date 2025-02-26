@@ -3,6 +3,8 @@ import { useState } from "react";
 
 export function UploadPage() {
   const currentAccount = useCurrentAccount();
+  const [blobId, setBlobId] = useState<string | null>(null);
+
   const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(
     null,
   );
@@ -45,12 +47,52 @@ export function UploadPage() {
 
     setUploading(true);
     try {
-      // TODO: Implement actual file upload logic here
-      console.log("Form data:", formData);
-      console.log("Cover image:", selectedCoverImage.name);
-      console.log("Game content:", selectedGameContent.name);
+      // Upload cover image to Walrus
+      const coverImageReader = new FileReader();
+      const coverImagePromise = new Promise((resolve, reject) => {
+        coverImageReader.onload = () => resolve(coverImageReader.result);
+        coverImageReader.onerror = reject;
+      });
+      coverImageReader.readAsDataURL(selectedCoverImage);
+      const coverImageData = (await coverImagePromise) as string;
 
-      // Reset after upload
+      // Upload game content to Walrus
+      const gameContentReader = new FileReader();
+      const gameContentPromise = new Promise((resolve, reject) => {
+        gameContentReader.onload = () => resolve(gameContentReader.result);
+        gameContentReader.onerror = reject;
+      });
+      gameContentReader.readAsDataURL(selectedGameContent);
+      const gameContentData = (await gameContentPromise) as string;
+
+      const PUBLISHER = "https://publisher.walrus-testnet.walrus.space";
+      const address = currentAccount.address;
+
+      // Upload cover image
+      const coverImageResponse = await fetch(coverImageData);
+      const coverImageBlob = await coverImageResponse.blob();
+      const coverImageUrl = `${PUBLISHER}/v1/blobs?send_object_to=${address}`;
+      const coverImageWalrusResponse = await fetch(coverImageUrl, {
+        method: "PUT",
+        body: coverImageBlob,
+      });
+      const coverImageResult = await coverImageWalrusResponse.json();
+
+      // Upload game content
+      const gameContentResponse = await fetch(gameContentData);
+      const gameContentBlob = await gameContentResponse.blob();
+      const gameContentUrl = `${PUBLISHER}/v1/blobs?send_object_to=${address}`;
+      const gameContentWalrusResponse = await fetch(gameContentUrl, {
+        method: "PUT",
+        body: gameContentBlob,
+      });
+      const gameContentResult = await gameContentWalrusResponse.json();
+
+      console.log("Form data:", formData);
+      console.log("Cover image upload result:", coverImageResult);
+      console.log("Game content upload result:", gameContentResult);
+
+      // Reset form after successful upload
       setSelectedCoverImage(null);
       setSelectedGameContent(null);
       setFormData({ title: "", description: "", price: "" });
