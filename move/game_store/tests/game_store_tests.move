@@ -130,7 +130,11 @@ module game_store::game_store_tests {
             // Clean up - use burn_for_testing instead of destroy_for_testing
             coin::burn_for_testing(coin);
             ts::return_shared(store_obj);
+        };
 
+        // Add a new transaction to verify the license
+        ts::next_tx(&mut scenario, PLAYER);
+        {
             // Verify player received the license
             assert!(ts::has_most_recent_for_address<GameLicense>(PLAYER), 0);
         };
