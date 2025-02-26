@@ -27,8 +27,8 @@ export function HomePage() {
   });
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <div className="flex flex-col items-center w-full max-w-[960px]">
+    <div className="flex flex-col items-center justify-center w-full">
+      <div className="flex flex-col items-center justify-center w-full max-w-[960px]">
         {/* Gallery Grid Container */}
         <div className="grid grid-cols-4 gap-4  w-full">
           {/* Featured Large Item */}

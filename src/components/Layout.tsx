@@ -11,7 +11,7 @@ export function Layout({ children }: LayoutProps) {
   const currentPath = location.pathname;
 
   return (
-    <div className="min-h-screen w-full bg-[#202020]">
+    <div className="min-h-screen w-full justify-center items-center flex flex-col bg-[#202020]">
       <NavBar />
       <div className="max-w-7xl mx-auto px-4 py-4">
         <main>{children}</main>
