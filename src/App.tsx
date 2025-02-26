@@ -1,8 +1,9 @@
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { isValidSuiObjectId } from "@mysten/sui/utils";
 import { useState } from "react";
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
+import { BlobPage } from "./pages/BlobPage";
 import { HomePage } from "./pages/HomePage";
 import { UploadPage } from "./pages/UploadPage";
 
@@ -42,14 +43,15 @@ function App() {
   // };
 
   return (
-    <Router>
+    <BrowserRouter>
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/upload" element={<UploadPage />} />
+          <Route path="/blob/:blobId" element={<BlobPage />} />
         </Routes>
       </Layout>
-    </Router>
+    </BrowserRouter>
   );
 }
 

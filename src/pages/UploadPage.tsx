@@ -1,9 +1,11 @@
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function UploadPage() {
   const currentAccount = useCurrentAccount();
   const [blobId, setBlobId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(
     null,
@@ -91,6 +93,11 @@ export function UploadPage() {
       console.log("Form data:", formData);
       console.log("Cover image upload result:", coverImageResult);
       console.log("Game content upload result:", gameContentResult);
+
+      // Navigate to the blob page using the cover image blob ID
+      if (coverImageResult.id) {
+        navigate(`/blob/${coverImageResult.id}`);
+      }
 
       // Reset form after successful upload
       setSelectedCoverImage(null);
