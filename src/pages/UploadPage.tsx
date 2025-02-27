@@ -6,6 +6,7 @@ import {
 } from "@mysten/dapp-kit";
 import { bcs } from "@mysten/sui/bcs";
 import { Transaction } from "@mysten/sui/transactions";
+import JSZip from "jszip";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNetworkVariable } from "../networkConfig";
@@ -60,61 +61,77 @@ export function UploadPage() {
     setUploading(true);
     try {
       // Upload cover image to Walrus
-      // const coverImageReader = new FileReader();
-      // const coverImagePromise = new Promise((resolve, reject) => {
-      //   coverImageReader.onload = () => resolve(coverImageReader.result);
-      //   coverImageReader.onerror = reject;
-      // });
-      // coverImageReader.readAsDataURL(selectedCoverImage);
-      // const coverImageData = (await coverImagePromise) as string;
+      const coverImageReader = new FileReader();
+      const coverImagePromise = new Promise((resolve, reject) => {
+        coverImageReader.onload = () => resolve(coverImageReader.result);
+        coverImageReader.onerror = reject;
+      });
+      coverImageReader.readAsDataURL(selectedCoverImage);
+      const coverImageData = (await coverImagePromise) as string;
 
-      // const zip = new JSZip();
-      // const gameFiles = Array.from(selectedGameContent);
+      const zip = new JSZip();
+      const gameFiles = Array.from(selectedGameContent);
 
-      // for (const file of gameFiles) {
-      //   const relativePath = file.webkitRelativePath || file.name;
-      //   const fileData = await file.arrayBuffer();
-      //   zip.file(relativePath, fileData);
-      // }
+      for (const file of gameFiles) {
+        const relativePath = file.webkitRelativePath || file.name;
+        const fileData = await file.arrayBuffer();
+        zip.file(relativePath, fileData);
+      }
 
-      // const gameZipBlob = await zip.generateAsync({ type: "blob" });
+      const gameZipBlob = await zip.generateAsync({ type: "blob" });
 
-      // const PUBLISHER = "https://publisher.walrus-testnet.walrus.space";
-      // const address = currentAccount.address;
+      const PUBLISHER = "https://publisher.walrus-testnet.walrus.space";
+      const address = currentAccount.address;
 
-      // const coverImageResponse = await fetch(coverImageData);
-      // const coverImageBlob = await coverImageResponse.blob();
-      // const coverImageUrl = `${PUBLISHER}/v1/blobs?send_object_to=${address}`;
-      // const coverImageWalrusResponse = await fetch(coverImageUrl, {
-      //   method: "PUT",
-      //   body: coverImageBlob,
-      // });
-      // const coverImageResult = await coverImageWalrusResponse.json();
+      const coverImageResponse = await fetch(coverImageData);
+      const coverImageBlob = await coverImageResponse.blob();
+      const coverImageUrl = `${PUBLISHER}/v1/blobs?send_object_to=${address}`;
+      const coverImageWalrusResponse = await fetch(coverImageUrl, {
+        method: "PUT",
+        body: coverImageBlob,
+      });
+      const coverImageResult = await coverImageWalrusResponse.json();
 
-      // const gameContentUrl = `${PUBLISHER}/v1/blobs?send_object_to=${address}`;
-      // const gameContentWalrusResponse = await fetch(gameContentUrl, {
-      //   method: "PUT",
-      //   body: gameZipBlob,
-      // });
-      // const gameContentResult = await gameContentWalrusResponse.json();
+      const gameContentUrl = `${PUBLISHER}/v1/blobs?send_object_to=${address}`;
+      const gameContentWalrusResponse = await fetch(gameContentUrl, {
+        method: "PUT",
+        body: gameZipBlob,
+      });
+      const gameContentResult = await gameContentWalrusResponse.json();
 
-      // console.log("Form data:", formData);
-      // console.log("Cover image upload result:", coverImageResult);
-      // console.log("Game content upload result:", gameContentResult);
+      // Extract blob IDs from either response format
+      const getBlobIdFromResult = (result: any) => {
+        if (result.alreadyCertified) {
+          return result.alreadyCertified.blobId;
+        }
+        if (result.newlyCreated) {
+          return result.newlyCreated.blobObject.blobId;
+        }
+        return null;
+      };
+
+      const coverImageBlobId = getBlobIdFromResult(coverImageResult);
+      const contentBlobId = getBlobIdFromResult(gameContentResult);
+
+      if (!coverImageBlobId || !contentBlobId) {
+        throw new Error("Failed to get blob IDs from response");
+      }
+
+      console.log("Form data:", formData);
+      console.log("Cover image upload result:", coverImageResult);
+      console.log("Game content upload result:", gameContentResult);
 
       // Create transaction to list game
       const tx = new Transaction();
       const price = formData.price
         ? BigInt(parseFloat(formData.price) * 1e9)
-        : null; // Convert to MIST (1 SUI = 1e9 MIST)
+        : null;
 
       // Encode arguments as bytes
       const titleBytes = bcs.string().serialize(formData.title);
       const descriptionBytes = bcs.string().serialize(formData.description);
-      const coverImageBytes = bcs.string().serialize("coverImage");
-      const contentBlobBytes = bcs.string().serialize("gameContentResult");
-      // const coverImageBytes = bcs.string().serialize(coverImageResult.id);
-      // const contentBlobBytes = bcs.string().serialize(gameContentResult.id);
+      const coverImageBytes = bcs.string().serialize(coverImageBlobId);
+      const contentBlobBytes = bcs.string().serialize(contentBlobId);
       const priceOption = bcs.option(bcs.U64).serialize(price);
 
       tx.moveCall({
@@ -138,8 +155,8 @@ export function UploadPage() {
           onSuccess: (result) => {
             suiClient.waitForTransaction({ digest: result.digest }).then(() => {
               // Navigate to the blob page using the game content blob ID
-              if (gameContentResult.id) {
-                navigate(`/blob/${gameContentResult.id}`);
+              if (contentBlobId) {
+                navigate(`/blob/${contentBlobId}`);
               }
 
               // Reset form after successful upload
