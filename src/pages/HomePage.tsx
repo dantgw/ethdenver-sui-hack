@@ -7,6 +7,7 @@ import {
 } from "@mysten/dapp-kit";
 import { isValidSuiObjectId } from "@mysten/sui/utils";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Add mock data for demonstration
 const featuredGames = [
@@ -61,6 +62,7 @@ interface GameData {
   tags: string[];
   rating: number;
   releaseDate: string;
+  contentBlobId: string;
 }
 
 // Add these interfaces at the top of the file with your other interfaces
@@ -86,9 +88,21 @@ interface SuiGameFields {
 
 interface SuiGameObject {
   data: {
+    objectId: string;
+    version: string;
+    digest: string;
+    owner: {
+      ObjectOwner: string;
+    };
     content: {
+      dataType: string;
+      type: string;
+      hasPublicTransfer: boolean;
       fields: {
+        id: { id: string };
+        name: string;
         value: {
+          type: string;
           fields: SuiGameFields;
         };
       };
@@ -97,6 +111,7 @@ interface SuiGameObject {
 }
 
 export function HomePage() {
+  const navigate = useNavigate();
   const currentAccount = useCurrentAccount();
   const suiClient = useSuiClient();
   const [selectedCategory, setSelectedCategory] = useState("new");
@@ -118,23 +133,18 @@ export function HomePage() {
   });
 
   // Update the useSuiClientQuery type
-  const { data: gameObjects } = useSuiClientQuery<SuiGameObject[]>(
-    "multiGetObjects",
-    {
-      ids: gamesTable?.data?.map((field) => field.objectId) || [],
-      options: { showContent: true },
-    },
-    {
-      enabled: !!gamesTable?.data?.length,
-    },
-  );
+  const { data: gameObjects } = useSuiClientQuery("multiGetObjects", {
+    ids: gamesTable?.data?.map((field) => field.objectId) || [],
+    options: { showContent: true },
+  });
 
   useEffect(() => {
     if (gameObjects) {
-      const games: GameData[] = gameObjects.map((obj) => {
+      const games: GameData[] = gameObjects.map((obj: any) => {
+        // Access the nested game fields correctly
         const gameFields = obj.data?.content?.fields?.value?.fields || {};
         return {
-          id: gameFields.game_id?.toString() || "",
+          id: obj.data?.objectId || "", // Use the Sui object ID for navigation
           title: gameFields.title || "",
           image: `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${gameFields.cover_image_blob_id}`,
           price: gameFields.price
@@ -143,6 +153,8 @@ export function HomePage() {
           tags: ["Game"],
           rating: 5,
           releaseDate: new Date().toISOString(),
+          // Add content blob ID for game loading
+          contentBlobId: gameFields.current_content_blob_id || "",
         };
       });
       setLatestGames(games);
@@ -154,9 +166,7 @@ export function HomePage() {
     try {
       console.log("fetchGames");
       console.log("data", data);
-      console.log("data2", data2);
 
-      console.log(data?.data?.content?.fields?.games?.fields?.id);
       const tableId =
         "0x0e3084d694e47e43d1f987d69cf40a434916475b0bbce6f4d6425fdc75364089";
 
@@ -178,53 +188,6 @@ export function HomePage() {
       });
 
       console.log("allGames", allGames);
-
-      // Get the game counter from the store data
-      // const gameCounter = parseInt(
-      //   data?.data?.content?.fields?.game_counter || "0",
-      // );
-
-      // // Create array of promises to fetch each game's details
-      // const gamesPromises = Array.from(
-      //   { length: gameCounter },
-      //   async (_, i) => {
-      //     const tx = new Transaction();
-      //     tx.moveCall({
-      //       arguments: [tx.object(GAME_STORE_ID), tx.pure.u64(i + 1)],
-      //       target: `${GAME_STORE_ID}::store::get_game_details`,
-      //     });
-
-      //     const gameDetails = await suiClient.devInspectTransactionBlock({
-      //       transactionBlock: tx,
-      //       sender: currentAccount?.address || "",
-      //     });
-
-      //     const [
-      //       id,
-      //       title,
-      //       description,
-      //       cover_image_blob_id,
-      //       content_blob_id,
-      //       current_version,
-      //       price,
-      //       developer,
-      //       owner,
-      //     ] = gameDetails.results?.[0]?.returnValues || [];
-
-      //     return {
-      //       id: id.toString(),
-      //       title,
-      //       image: cover_image_blob_id,
-      //       price: price ? `${price} SUI` : "Free",
-      //       tags: ["Game"],
-      //       rating: 5,
-      //       releaseDate: new Date().toISOString(),
-      //     };
-      //   },
-      // );
-
-      // const games = await Promise.all(gamesPromises);
-      // setLatestGames(games);
     } catch (error) {
       console.error("Error fetching games:", error);
     }
@@ -232,6 +195,11 @@ export function HomePage() {
   useEffect(() => {
     fetchGames();
   }, [suiClient, data]);
+
+  // Add handleGameClick function
+  const handleGameClick = (gameId: string) => {
+    navigate(`/game/${gameId}`);
+  };
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-[#1a1a1a] text-white">
@@ -338,7 +306,8 @@ export function HomePage() {
             {latestGames.map((game) => (
               <div
                 key={game.id}
-                className="bg-[#2a2a2a] rounded-lg overflow-hidden group cursor-pointer"
+                className="bg-[#2a2a2a] rounded-lg overflow-hidden group cursor-pointer hover:bg-[#3a3a3a] transition-colors duration-200"
+                onClick={() => handleGameClick(game.id)}
               >
                 <div className="relative">
                   <img
@@ -346,7 +315,6 @@ export function HomePage() {
                     alt={game.title}
                     className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={(e) => {
-                      // Fallback image if IPFS image fails to load
                       e.currentTarget.src = "/images/game_placeholder.jpeg";
                     }}
                   />

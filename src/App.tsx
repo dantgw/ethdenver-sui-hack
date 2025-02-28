@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { BlobPage } from "./pages/BlobPage";
+import { GamePage } from "./pages/GamePage";
 import { HomePage } from "./pages/HomePage";
 import { UnityGamePage } from "./pages/UnityGamePage";
 import { UploadPage } from "./pages/UploadPage";
@@ -50,6 +51,8 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/upload" element={<UploadPage />} />
           <Route path="/blob/:blobId" element={<BlobPage />} />
+          <Route path="/game/:gameId" element={<GamePage />} />
+
           <Route path="/game" element={<UnityGamePage />} />
         </Routes>
       </Layout>
