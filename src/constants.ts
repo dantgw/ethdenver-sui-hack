@@ -12,3 +12,6 @@ export const GAME_STORE_ID =
   "0xdd8f2942044cefe751cd0e5e29d57a2600cf8aa527462a8e9ced97363e2f2f4d";
 export const GAME =
   "0x2ce5aa6b56d512d7f898186bcc46b76cfcc66a49b94a6eb15d3a28c8d72faafe";
+
+export const GAME_STORE_TABLE_ID =
+  "0x0e3084d694e47e43d1f987d69cf40a434916475b0bbce6f4d6425fdc75364089";

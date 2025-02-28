@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { useCurrentAccount } from "@mysten/dapp-kit";
+import { GAME_STORE_ID } from "@/constants";
+import {
+  useCurrentAccount,
+  useSuiClient,
+  useSuiClientQuery,
+} from "@mysten/dapp-kit";
 import { isValidSuiObjectId } from "@mysten/sui/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // Add mock data for demonstration
 const featuredGames = [
@@ -47,105 +52,129 @@ const categories = [
   { id: "specials", name: "Specials" },
 ];
 
-const latestGames = [
-  {
-    id: 5,
-    title: "Pigs Can Fly",
-    image: "/images/game_5.jpeg",
-    price: "0.8 SUI",
-    tags: ["Casual", "Platformer"],
-    rating: 4.9,
-    releaseDate: "2024-03-15",
-  },
-  {
-    id: 6,
-    title: "Ghost Mansion",
-    image: "/images/game_6.jpeg",
-    price: "0.45 SUI",
-    tags: ["Horror", "Action"],
-    rating: 4.6,
-    releaseDate: "2024-03-10",
-  },
-  {
-    id: 7,
-    title: "Fantasy Warrior",
-    image: "/images/game_7.jpeg",
-    price: "0.55 SUI",
-    tags: ["Action", "Fantasy"],
-    rating: 4.7,
-    releaseDate: "2024-03-08",
-  },
-  {
-    id: 8,
-    title: "Cyber Racers",
-    image: "/images/game_8.jpeg",
-    price: "0.65 SUI",
-    tags: ["Racing", "Open World"],
-    rating: 4.8,
-    releaseDate: "2024-03-05",
-  },
-  {
-    id: 9,
-    title: "Forest Fighter",
-    image: "/images/game_9.jpeg",
-    price: "0.75 SUI",
-    tags: ["Action", "Multiplayer"],
-    rating: 4.5,
-    releaseDate: "2024-03-01",
-  },
-  {
-    id: 10,
-    title: "Neon Drift",
-    image: "/images/game_10.jpeg",
-    price: "0.8 SUI",
-    tags: ["Action", "Cyberpunk"],
-    rating: 4.9,
-    releaseDate: "2024-03-15",
-  },
-];
-
-const popularGames = [
-  {
-    id: 3,
-    title: "Quantum Raiders",
-    image: "/images/game_3.jpeg",
-    price: "0.4 SUI",
-    tags: ["Adventure", "Fantasy"],
-    rating: 4.2,
-  },
-  {
-    id: 4,
-    title: "Temple Finders",
-    image: "/images/game_4.jpeg",
-    price: "0.6 SUI",
-    tags: ["Action", "Adventure"],
-    rating: 3.9,
-  },
-  {
-    id: 5,
-    title: "Pigs Can Fly",
-    image: "/images/game_5.jpeg",
-    price: "0.8 SUI",
-    tags: ["Casual", "Platformer"],
-    rating: 4.9,
-  },
-  {
-    id: 6,
-    title: "Ghost Mansion",
-    image: "/images/game_6.jpeg",
-    price: "0.55 SUI",
-    tags: ["Horror", "Action"],
-    rating: 4.6,
-  },
-];
+// Add new interface for Game type
+interface GameData {
+  id: string;
+  title: string;
+  image: string;
+  price: string;
+  tags: string[];
+  rating: number;
+  releaseDate: string;
+}
 
 export function HomePage() {
   const currentAccount = useCurrentAccount();
+  const suiClient = useSuiClient();
   const [selectedCategory, setSelectedCategory] = useState("new");
   const [counterId, setCounter] = useState(() => {
     const hash = window.location.hash.slice(1);
     return isValidSuiObjectId(hash) ? hash : null;
   });
+  const { data, isPending, error, refetch } = useSuiClientQuery("getObject", {
+    id: GAME_STORE_ID,
+    options: {
+      showContent: true,
+      showOwner: true,
+    },
+  });
+
+  const {
+    data: data2,
+    isPending: isPending2,
+    error: error2,
+    refetch: refetch2,
+  } = useSuiClientQuery("getObject", {
+    id: "0x1a15269d92b6f0782fe31582ad0e8261241e717e210af48c36dda11a45fcaea2",
+    options: {
+      showContent: true,
+      showOwner: true,
+    },
+  });
+
+  const [latestGames, setLatestGames] = useState<GameData[]>([]);
+  const fetchGames = async () => {
+    try {
+      console.log("fetchGames");
+      console.log("data", data);
+      console.log("data2", data2);
+
+      console.log(data?.data?.content?.fields?.games?.fields?.id);
+      const tableId =
+        "0x0e3084d694e47e43d1f987d69cf40a434916475b0bbce6f4d6425fdc75364089";
+
+      // To read a specific game by its ID (key)
+      const gameId = "1"; // or whatever game ID you want to read
+      const dynamicFieldName = {
+        type: "u64",
+        value: gameId,
+      };
+
+      const gameData = await suiClient.getDynamicFieldObject({
+        parentId: tableId,
+        name: dynamicFieldName,
+      });
+
+      // To get all games, you can use getDynamicFields
+      const allGames = await suiClient.getDynamicFields({
+        parentId: tableId,
+      });
+
+      console.log("allGames", allGames);
+
+      // Get the game counter from the store data
+      // const gameCounter = parseInt(
+      //   data?.data?.content?.fields?.game_counter || "0",
+      // );
+
+      // // Create array of promises to fetch each game's details
+      // const gamesPromises = Array.from(
+      //   { length: gameCounter },
+      //   async (_, i) => {
+      //     const tx = new Transaction();
+      //     tx.moveCall({
+      //       arguments: [tx.object(GAME_STORE_ID), tx.pure.u64(i + 1)],
+      //       target: `${GAME_STORE_ID}::store::get_game_details`,
+      //     });
+
+      //     const gameDetails = await suiClient.devInspectTransactionBlock({
+      //       transactionBlock: tx,
+      //       sender: currentAccount?.address || "",
+      //     });
+
+      //     const [
+      //       id,
+      //       title,
+      //       description,
+      //       cover_image_blob_id,
+      //       content_blob_id,
+      //       current_version,
+      //       price,
+      //       developer,
+      //       owner,
+      //     ] = gameDetails.results?.[0]?.returnValues || [];
+
+      //     return {
+      //       id: id.toString(),
+      //       title,
+      //       image: cover_image_blob_id,
+      //       price: price ? `${price} SUI` : "Free",
+      //       tags: ["Game"],
+      //       rating: 5,
+      //       releaseDate: new Date().toISOString(),
+      //     };
+      //   },
+      // );
+
+      // const games = await Promise.all(gamesPromises);
+      // setLatestGames(games);
+    } catch (error) {
+      console.error("Error fetching games:", error);
+    }
+  };
+  useEffect(() => {
+    fetchGames();
+  }, [suiClient, data]);
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-[#1a1a1a] text-white">
@@ -305,7 +334,7 @@ export function HomePage() {
             </a>
           </div>
           <div className="grid grid-cols-4 gap-4">
-            {popularGames.map((game) => (
+            {featuredGames.map((game) => (
               <div
                 key={game.id}
                 className="bg-[#2a2a2a] rounded-lg overflow-hidden group cursor-pointer"
