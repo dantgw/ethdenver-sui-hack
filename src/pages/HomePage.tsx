@@ -63,6 +63,39 @@ interface GameData {
   releaseDate: string;
 }
 
+// Add these interfaces at the top of the file with your other interfaces
+interface SuiGameFields {
+  cover_image_blob_id: string;
+  current_content_blob_id: string;
+  current_version: string;
+  description: string;
+  developer: string;
+  game_id: string;
+  id: { id: string };
+  owner: string;
+  price: string;
+  title: string;
+  version_history: {
+    type: string;
+    fields: {
+      id: { id: string };
+      size: string;
+    };
+  };
+}
+
+interface SuiGameObject {
+  data: {
+    content: {
+      fields: {
+        value: {
+          fields: SuiGameFields;
+        };
+      };
+    };
+  };
+}
+
 export function HomePage() {
   const currentAccount = useCurrentAccount();
   const suiClient = useSuiClient();
@@ -79,18 +112,42 @@ export function HomePage() {
     },
   });
 
-  const {
-    data: data2,
-    isPending: isPending2,
-    error: error2,
-    refetch: refetch2,
-  } = useSuiClientQuery("getObject", {
-    id: "0x1a15269d92b6f0782fe31582ad0e8261241e717e210af48c36dda11a45fcaea2",
-    options: {
-      showContent: true,
-      showOwner: true,
-    },
+  const { data: gamesTable } = useSuiClientQuery("getDynamicFields", {
+    parentId:
+      "0x0e3084d694e47e43d1f987d69cf40a434916475b0bbce6f4d6425fdc75364089",
   });
+
+  // Update the useSuiClientQuery type
+  const { data: gameObjects } = useSuiClientQuery<SuiGameObject[]>(
+    "multiGetObjects",
+    {
+      ids: gamesTable?.data?.map((field) => field.objectId) || [],
+      options: { showContent: true },
+    },
+    {
+      enabled: !!gamesTable?.data?.length,
+    },
+  );
+
+  useEffect(() => {
+    if (gameObjects) {
+      const games: GameData[] = gameObjects.map((obj) => {
+        const gameFields = obj.data?.content?.fields?.value?.fields || {};
+        return {
+          id: gameFields.game_id?.toString() || "",
+          title: gameFields.title || "",
+          image: `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${gameFields.cover_image_blob_id}`,
+          price: gameFields.price
+            ? `${Number(gameFields.price) / 1000000000} SUI`
+            : "Free",
+          tags: ["Game"],
+          rating: 5,
+          releaseDate: new Date().toISOString(),
+        };
+      });
+      setLatestGames(games);
+    }
+  }, [gameObjects]);
 
   const [latestGames, setLatestGames] = useState<GameData[]>([]);
   const fetchGames = async () => {
@@ -288,6 +345,10 @@ export function HomePage() {
                     src={game.image}
                     alt={game.title}
                     className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-105"
+                    onError={(e) => {
+                      // Fallback image if IPFS image fails to load
+                      e.currentTarget.src = "/images/game_placeholder.jpeg";
+                    }}
                   />
                   <div className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded">
                     <div className="flex items-center gap-1">
