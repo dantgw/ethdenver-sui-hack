@@ -6,10 +6,64 @@ import {
 } from "@mysten/dapp-kit";
 import { bcs } from "@mysten/sui/bcs";
 import { Transaction } from "@mysten/sui/transactions";
+import { motion } from "framer-motion";
 import JSZip from "jszip";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNetworkVariable } from "../networkConfig";
+
+// Add WebkitDirectoryAttribute to HTMLInputElement
+declare module "react" {
+  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+    directory?: string;
+    webkitdirectory?: string;
+  }
+}
+
+const UploadStep = ({
+  number,
+  title,
+  isActive,
+  isCompleted,
+}: {
+  number: number;
+  title: string;
+  isActive: boolean;
+  isCompleted: boolean;
+}) => (
+  <div className="flex items-center">
+    <div
+      className={`flex items-center justify-center w-8 h-8 rounded-full ${
+        isCompleted ? "bg-green-500" : isActive ? "bg-blue-600" : "bg-gray-600"
+      }`}
+    >
+      {isCompleted ? (
+        <svg
+          className="w-5 h-5 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      ) : (
+        <span className="text-white">{number}</span>
+      )}
+    </div>
+    <div className="ml-3">
+      <p
+        className={`text-sm font-medium ${isActive ? "text-white" : "text-gray-400"}`}
+      >
+        {title}
+      </p>
+    </div>
+  </div>
+);
 
 export function UploadPage() {
   const currentAccount = useCurrentAccount();
@@ -30,6 +84,8 @@ export function UploadPage() {
     price: "",
   });
   const [uploading, setUploading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileSelect = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -186,15 +242,25 @@ export function UploadPage() {
   }
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <div className="flex flex-col items-center w-full max-w-[960px]">
-        <h1 className="text-2xl font-bold mb-6">Upload Game</h1>
+    <div className="flex flex-col items-center w-screen h-full min-h-screen bg-[#0F0F0F]">
+      <div className="w-full max-w-5xl px-8 py-12 flex flex-col gap-y-12">
+        <h1 className="text-4xl font-bold mb-12 text-white w-full">
+          Upload Your Game
+        </h1>
 
-        <div className="space-y-4 w-full">
+        <div className="flex flex-col gap-y-6">
           {/* Title Input */}
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-2">
-              Title
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full flex flex-col gap-y-2"
+          >
+            <label
+              htmlFor="title"
+              className="block text-base font-medium text-gray-200 mb-3"
+            >
+              Game Title
             </label>
             <input
               type="text"
@@ -202,47 +268,95 @@ export function UploadPage() {
               name="title"
               value={formData.title}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 bg-[#252525] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter game title"
+              className="w-full px-5 py-4 bg-[#1A1A1A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-all duration-200"
+              placeholder="Enter an engaging title for your game"
             />
-          </div>
+          </motion.div>
 
           {/* Description Input */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="w-full flex flex-col gap-y-2"
+          >
             <label
               htmlFor="description"
-              className="block text-sm font-medium mb-2"
+              className="block text-base font-medium text-gray-200 mb-3"
             >
-              Description
+              Game Description
             </label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 bg-[#252525] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
-              placeholder="Enter game description"
+              className="w-full px-5 py-4 bg-[#1A1A1A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-all duration-200 min-h-[160px] resize-none"
+              placeholder="Describe your game and what makes it special..."
             />
-          </div>
+          </motion.div>
 
           {/* Cover Image Upload */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="w-full flex flex-col gap-y-2"
+          >
+            <label className="block text-base font-medium text-gray-200 mb-3">
               Cover Image
             </label>
             <div className="flex items-center justify-center w-full">
               <label
                 htmlFor="cover-upload"
-                className="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-600 border-dashed rounded-lg cursor-pointer bg-[#252525] hover:bg-[#2a2a2a] transition-colors"
+                className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                  selectedCoverImage
+                    ? "border-green-500 bg-[#1A1A1A]/80"
+                    : "border-gray-600 bg-[#1A1A1A] hover:bg-[#252525]"
+                }`}
               >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <p className="mb-2 text-sm text-gray-400">
-                    <span className="font-semibold">
-                      Click to upload cover image
-                    </span>
-                  </p>
-                  <p className="text-xs text-gray-400">PNG, JPG up to 10MB</p>
-                </div>
+                {selectedCoverImage ? (
+                  <div className="flex flex-col items-center">
+                    <svg
+                      className="w-10 h-10 text-green-500 mb-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <p className="text-sm text-green-500">
+                      {selectedCoverImage.name}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg
+                      className="w-10 h-10 text-gray-400 mb-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                    <p className="mb-2 text-sm text-gray-400">
+                      <span className="font-semibold">
+                        Click to upload cover image
+                      </span>
+                    </p>
+                    <p className="text-xs text-gray-400">PNG, JPG up to 10MB</p>
+                  </div>
+                )}
                 <input
                   id="cover-upload"
                   type="file"
@@ -252,45 +366,74 @@ export function UploadPage() {
                 />
               </label>
             </div>
-            {selectedCoverImage && (
-              <div className="mt-2 flex items-center justify-between bg-[#252525] p-4 rounded-lg">
-                <span className="text-sm text-gray-300">
-                  {selectedCoverImage.name}
-                </span>
-                <button
-                  onClick={() => setSelectedCoverImage(null)}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  Remove
-                </button>
-              </div>
-            )}
-          </div>
+          </motion.div>
 
           {/* Game Content Upload */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+            className="w-full flex flex-col gap-y-2"
+          >
+            <label className="block text-base font-medium text-gray-200 mb-3">
               Game Content
             </label>
             <div className="flex items-center justify-center w-full">
               <label
                 htmlFor="game-upload"
-                className="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-600 border-dashed rounded-lg cursor-pointer bg-[#252525] hover:bg-[#2a2a2a] transition-colors"
+                className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                  selectedGameContent
+                    ? "border-green-500 bg-[#1A1A1A]/80"
+                    : "border-gray-600 bg-[#1A1A1A] hover:bg-[#252525]"
+                }`}
               >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <p className="mb-2 text-sm text-gray-400">
-                    <span className="font-semibold">
-                      Click to upload Unity build folder
-                    </span>
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Select your Unity build folder
-                  </p>
-                </div>
+                {selectedGameContent ? (
+                  <div className="flex flex-col items-center">
+                    <svg
+                      className="w-10 h-10 text-green-500 mb-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <p className="text-sm text-green-500">
+                      {selectedGameContent.length} files selected
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg
+                      className="w-10 h-10 text-gray-400 mb-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                    <p className="mb-2 text-sm text-gray-400">
+                      <span className="font-semibold">
+                        Click to upload Unity build folder
+                      </span>
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Select your Unity build folder
+                    </p>
+                  </div>
+                )}
                 <input
                   id="game-upload"
                   type="file"
-                  // @ts-ignore - webkitdirectory and directory are valid but not in TypeScript's types
                   webkitdirectory="true"
                   directory=""
                   multiple
@@ -299,60 +442,109 @@ export function UploadPage() {
                 />
               </label>
             </div>
-            {selectedGameContent && (
-              <div className="mt-2 flex items-center justify-between bg-[#252525] p-4 rounded-lg">
-                <span className="text-sm text-gray-300">
-                  {selectedGameContent.length} files selected
-                </span>
-                <button
-                  onClick={() => setSelectedGameContent(null)}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  Remove
-                </button>
-              </div>
-            )}
-          </div>
+          </motion.div>
 
           {/* Price Input */}
-          <div>
-            <label htmlFor="price" className="block text-sm font-medium mb-2">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
+            className="w-full flex flex-col gap-y-2"
+          >
+            <label
+              htmlFor="price"
+              className="block text-base font-medium text-gray-200 mb-3"
+            >
               Price (SUI)
             </label>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              value={formData.price}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 bg-[#252525] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter price in SUI"
-              min="0"
-              step="0.01"
-            />
-          </div>
+            <div className="relative">
+              <input
+                type="number"
+                id="price"
+                name="price"
+                value={formData.price}
+                onChange={handleInputChange}
+                className="w-full pl-14 pr-5 py-4 bg-[#1A1A1A] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 transition-all duration-200"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+              />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-5">
+                <span className="text-gray-400 text-lg">SUI</span>
+              </div>
+            </div>
+          </motion.div>
 
-          <button
-            onClick={handleUpload}
-            disabled={
-              !selectedGameContent ||
-              !selectedCoverImage ||
-              uploading ||
-              !formData.title ||
-              !formData.price
-            }
-            className={`w-full py-2 px-4 rounded-lg font-medium ${
-              !selectedGameContent ||
-              !selectedCoverImage ||
-              uploading ||
-              !formData.title ||
-              !formData.price
-                ? "bg-gray-600 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            } transition-colors`}
+          {/* Upload Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.5 }}
+            className="pt-6"
           >
-            {uploading ? "Uploading..." : "Upload Game"}
-          </button>
+            <button
+              onClick={handleUpload}
+              disabled={
+                !selectedGameContent ||
+                !selectedCoverImage ||
+                uploading ||
+                !formData.title ||
+                !formData.price
+              }
+              className={`w-full py-5 px-8 rounded-lg font-medium text-lg transition-all duration-200 ${
+                !selectedGameContent ||
+                !selectedCoverImage ||
+                uploading ||
+                !formData.title ||
+                !formData.price
+                  ? "bg-gray-700 cursor-not-allowed"
+                  : "bg-[#9B4AE6] hover:bg-[#A366E8] transform hover:-translate-y-1 cursor-pointer font-bold"
+              }`}
+            >
+              {uploading ? (
+                <div className="flex flex-row gap-x-2 items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span className="font-bold">Uploading Game...</span>
+                </div>
+              ) : (
+                <span className="font-bold">List Game</span>
+              )}
+            </button>
+          </motion.div>
+
+          {uploading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="w-full bg-[#1A1A1A] rounded-full h-3 mt-6"
+            >
+              <motion.div
+                className="bg-blue-600 h-3 rounded-full"
+                initial={{ width: "0%" }}
+                animate={{ width: `${uploadProgress}%` }}
+                transition={{ duration: 0.5 }}
+              ></motion.div>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>
