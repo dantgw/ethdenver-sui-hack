@@ -9,9 +9,10 @@ const featuredGames = [
     id: 1,
     title: "Legends",
     image: "/images/game_1.jpeg",
-    price: "0.5 SUI",
-    tags: ["Action", "RPG"],
-    rating: 4.5,
+    price: "0.8 SUI",
+    tags: ["Action", "Adventure"],
+    rating: 4.9,
+    releaseDate: "2024-03-15",
   },
   {
     id: 2,
@@ -152,14 +153,14 @@ export function HomePage() {
       <div className="relative h-[500px] w-full">
         <div className="absolute inset-0">
           <img
-            src="/images/game_1.jpeg"
+            src="/images/game_5.jpeg"
             alt="Featured Game"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] to-transparent" />
         </div>
         <div className="absolute bottom-4 left-0 right-0 p-8 max-w-7xl mx-auto flex flex-col gap-y-4">
-          <h1 className="text-5xl font-bold mb-4">{featuredGames[0].title}</h1>
+          <h1 className="text-5xl font-bold mb-4">Pigs Can Fly</h1>
           <p className="text-xl text-gray-300 mb-6 max-w-2xl">
             Experience the future of gaming on the Sui blockchain. Own, trade,
             and play like never before.
