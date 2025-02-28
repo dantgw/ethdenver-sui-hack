@@ -1,4 +1,5 @@
 import { useSuiClient, useSuiClientQuery } from "@mysten/dapp-kit";
+import { motion } from "framer-motion";
 import JSZip from "jszip";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -24,6 +25,13 @@ interface SuiGameFields {
   price: string;
   title: string;
 }
+
+// Skeleton loader component
+const GameSkeleton = () => (
+  <div className="animate-pulse w-full">
+    <div className="h-8 w-full bg-gray-700 rounded mb-6 mx-auto"></div>
+  </div>
+);
 
 export function GamePage() {
   const { gameId } = useParams();
@@ -320,47 +328,59 @@ export function GamePage() {
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="flex flex-col items-center w-full max-w-[960px]">
-        <h1 className="text-2xl font-bold mb-6">{gameTitle}</h1>
+      <div className="flex flex-col items-center w-full max-w-[960px] ">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="w-full"
+        >
+          <div className="w-full p-6 bg-[#252525] rounded-lg min-h-[600px] flex items-center justify-center">
+            {loading && <GameSkeleton />}
 
-        <div className="w-full p-6 bg-[#252525] rounded-lg">
-          {loading && <div className="text-gray-300">Loading game...</div>}
+            {error && (
+              <div className="text-red-500 p-4 bg-red-500/10 rounded-lg">
+                <p className="font-semibold">Error</p>
+                <p className="text-sm opacity-90">{error}</p>
+              </div>
+            )}
 
-          {error && <div className="text-red-500">Error: {error}</div>}
+            {blobContent && !loading && !error && !isUnityGame && (
+              <div className="w-full overflow-hidden rounded-lg">
+                <img
+                  src={blobContent}
+                  alt="Game content"
+                  className="w-full h-auto rounded-lg"
+                />
+              </div>
+            )}
 
-          {blobContent && !loading && !error && !isUnityGame && (
-            <div className="overflow-auto">
-              <img
-                src={blobContent}
-                alt="Game content"
-                className="max-w-full rounded-lg"
-              />
-            </div>
-          )}
-
-          {isUnityGame && !loading && !error && (
-            <div id="unity-container" className="unity-desktop">
-              <canvas
-                id="unity-canvas"
-                width={960}
-                height={600}
-                tabIndex={-1}
-              ></canvas>
-              <div id="unity-loading-bar">
-                <div id="unity-logo"></div>
-                <div id="unity-progress-bar-empty">
-                  <div id="unity-progress-bar-full"></div>
+            {isUnityGame && !loading && !error && (
+              <div id="unity-container" className="unity-desktop">
+                <canvas
+                  id="unity-canvas"
+                  width={960}
+                  height={600}
+                  tabIndex={-1}
+                  className="rounded-lg"
+                ></canvas>
+                <div id="unity-loading-bar">
+                  <div id="unity-logo"></div>
+                  <div id="unity-progress-bar-empty">
+                    <div id="unity-progress-bar-full"></div>
+                  </div>
+                </div>
+                <div id="unity-warning"> </div>
+                <div id="unity-footer">
+                  <div id="unity-logo-title-footer"></div>
+                  <div id="unity-fullscreen-button"></div>
+                  <div id="unity-build-title">{gameTitle}</div>
                 </div>
               </div>
-              <div id="unity-warning"> </div>
-              <div id="unity-footer">
-                <div id="unity-logo-title-footer"></div>
-                <div id="unity-fullscreen-button"></div>
-                <div id="unity-build-title">{gameTitle}</div>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+          <h1 className="text-2xl font-bold mb-6 text-center">{gameTitle}</h1>
+        </motion.div>
       </div>
     </div>
   );

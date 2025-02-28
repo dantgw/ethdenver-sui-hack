@@ -13,7 +13,7 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen w-full  items-center flex flex-col bg-[#202020]">
       <NavBar />
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto w-full">
         <main>{children}</main>
       </div>
     </div>
