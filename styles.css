@@ -121,13 +121,12 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-
-/*
+  /*
 deep black (#1E1E1E), 
 sky blue (#00BFFF), 
 vivid orange (#FF4500), 
 bright gold (#FFD700),
 rich purple (#8A2BE2)
-$/
+*/
+}
+
