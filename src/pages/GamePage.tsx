@@ -336,7 +336,7 @@ export function GamePage() {
           className="w-full"
         >
           <div className="w-full bg-[#252525] min-h-[720px] flex items-center justify-center">
-            {loading && <GameSkeleton />}
+            {loading && !isUnityGame && <GameSkeleton />}
 
             {error && (
               <div className="text-red-500 p-4 bg-red-500/10 rounded-lg">

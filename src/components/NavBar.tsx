@@ -20,7 +20,7 @@ const NavBar = () => {
   ];
 
   return (
-    <nav className="sticky top-0 h-20 z-50 w-full flex flex-row border-b shadow-sm justify-center items-center bg-transparent ">
+    <nav className="sticky top-0 h-20 z-50 w-full flex flex-row border-b shadow-sm justify-center items-center bg-[#1E1E1E] ">
       <div className="flex flex-row h-full items-center justify-between w-full max-w-[960px]">
         <img src="/images/degs2_128.png" className="h-16" />
         {/* <span className="text-2xl font-bold">dApp Starter Template</span> */}
