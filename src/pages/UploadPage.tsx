@@ -242,7 +242,7 @@ export function UploadPage() {
   }
 
   return (
-    <div className="flex flex-col items-center w-screen h-full min-h-screen bg-[#0F0F0F]">
+    <div className="flex flex-col items-center w-full h-full min-h-screen bg-[#0F0F0F]">
       <div className="w-full max-w-5xl px-8 py-12 flex flex-col gap-y-12">
         <h1 className="text-4xl font-bold mb-12 text-white w-full">
           Upload Your Game
