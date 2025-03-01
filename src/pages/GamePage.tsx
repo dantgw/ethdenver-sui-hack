@@ -335,7 +335,7 @@ export function GamePage() {
           transition={{ duration: 0.3 }}
           className="w-full"
         >
-          <div className="w-full p-6 bg-[#252525] rounded-lg min-h-[600px] flex items-center justify-center">
+          <div className="w-full bg-[#252525] min-h-[720px] flex items-center justify-center">
             {loading && <GameSkeleton />}
 
             {error && (
@@ -356,25 +356,28 @@ export function GamePage() {
             )}
 
             {isUnityGame && !loading && !error && (
-              <div id="unity-container" className="unity-desktop">
-                <canvas
-                  id="unity-canvas"
-                  width={960}
-                  height={600}
-                  tabIndex={-1}
-                  className="rounded-lg"
-                ></canvas>
-                <div id="unity-loading-bar">
-                  <div id="unity-logo"></div>
-                  <div id="unity-progress-bar-empty">
-                    <div id="unity-progress-bar-full"></div>
+              <div id="unity-container" className=" flex justify-center w-full">
+                <div className="relative">
+                  <canvas
+                    id="unity-canvas"
+                    width={960}
+                    height={720}
+                    tabIndex={-1}
+                    className=""
+                    style={{ width: "960px", height: "720px" }}
+                  ></canvas>
+                  <div id="unity-loading-bar">
+                    <div id="unity-logo"></div>
+                    <div id="unity-progress-bar-empty">
+                      <div id="unity-progress-bar-full"></div>
+                    </div>
                   </div>
-                </div>
-                <div id="unity-warning"> </div>
-                <div id="unity-footer">
-                  <div id="unity-logo-title-footer"></div>
-                  <div id="unity-fullscreen-button"></div>
-                  <div id="unity-build-title">{gameTitle}</div>
+                  <div id="unity-warning"> </div>
+                  <div id="unity-footer">
+                    <div id="unity-logo-title-footer"></div>
+                    <div id="unity-fullscreen-button"></div>
+                    <div id="unity-build-title">{gameTitle}</div>
+                  </div>
                 </div>
               </div>
             )}

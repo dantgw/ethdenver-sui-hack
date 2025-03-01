@@ -66,19 +66,31 @@ export function UnityGamePage() {
   }, []);
 
   return (
-    <div id="unity-container" className="unity-desktop">
-      <canvas id="unity-canvas" width={960} height={600} tabIndex={-1}></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
+    <div className="flex flex-col items-center w-full">
+      <div className="flex flex-col items-center w-full max-w-[960px]">
+        <div id="unity-container" className="flex justify-center w-full">
+          <div className="relative">
+            <canvas
+              id="unity-canvas"
+              width={960}
+              height={720}
+              tabIndex={-1}
+              className=""
+              style={{ width: "960px", height: "720px" }}
+            ></canvas>
+            <div id="unity-loading-bar">
+              <div id="unity-logo"></div>
+              <div id="unity-progress-bar-empty">
+                <div id="unity-progress-bar-full"></div>
+              </div>
+            </div>
+            <div id="unity-warning"> </div>
+            <div id="unity-footer">
+              <div id="unity-logo-title-footer"></div>
+              <div id="unity-fullscreen-button"></div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Flappy Bird</div>
       </div>
     </div>
   );

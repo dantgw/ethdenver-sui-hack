@@ -314,7 +314,7 @@ export function BlobPage() {
               <canvas
                 id="unity-canvas"
                 width={960}
-                height={600}
+                height={720}
                 tabIndex={-1}
               ></canvas>
               <div id="unity-loading-bar">
