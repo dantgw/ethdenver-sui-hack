@@ -1,4 +1,11 @@
-import { useSuiClient, useSuiClientQuery } from "@mysten/dapp-kit";
+import { GAME_STORE_ID } from "@/constants";
+import { useNetworkVariable } from "@/networkConfig";
+import {
+  useSignAndExecuteTransaction,
+  useSuiClient,
+  useSuiClientQuery,
+} from "@mysten/dapp-kit";
+import { Transaction } from "@mysten/sui/transactions";
 import JSZip from "jszip";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -46,11 +53,14 @@ const formatAddress = (address: string): string => {
 export function GamePage() {
   const { gameId } = useParams();
   const suiClient = useSuiClient();
+  const { mutate: signAndExecute } = useSignAndExecuteTransaction();
+  const gameStorePackageId = useNetworkVariable("gameStorePackageId");
   const [blobContent, setBlobContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUnityGame, setIsUnityGame] = useState(false);
   const [gameTitle, setGameTitle] = useState("Unity Game");
+  const [purchasing, setPurchasing] = useState(false);
 
   // Query the game object to get its details
   const { data: gameObject } = useSuiClientQuery("getObject", {
@@ -194,6 +204,62 @@ export function GamePage() {
         frameworkScript.parentNode.removeChild(frameworkScript);
       }
     };
+  };
+
+  // Add a function to safely get game fields
+  const getGameFields = (): SuiGameFields | null => {
+    if (!gameObject?.data?.content) return null;
+    const gameData = gameObject.data.content as any;
+    return gameData?.fields?.value?.fields as SuiGameFields;
+  };
+
+  const handlePurchase = async () => {
+    const gameFields = getGameFields();
+    if (!gameFields?.price) {
+      console.error("No price found for game");
+      return;
+    }
+
+    setPurchasing(true);
+    try {
+      const tx = new Transaction();
+
+      tx.moveCall({
+        target: `${gameStorePackageId}::store::purchase_game`,
+        arguments: [
+          tx.object(GAME_STORE_ID),
+          tx.pure("u64", BigInt(gameFields.game_id)),
+          tx.gas, // Use the gas object directly as payment
+        ],
+      });
+
+      signAndExecute(
+        {
+          transaction: tx,
+          options: {
+            showEffects: true,
+            showObjectChanges: true,
+            gasBudget: BigInt(gameFields.price) + BigInt(1000000), // Add some extra for gas
+          },
+        },
+        {
+          onSuccess: (result) => {
+            suiClient.waitForTransaction({ digest: result.digest }).then(() => {
+              console.log("Game purchased successfully!");
+            });
+          },
+          onError: (error) => {
+            console.error("Purchase failed:", error);
+            setError("Failed to purchase game");
+          },
+        },
+      );
+    } catch (err) {
+      console.error("Purchase error:", err);
+      setError(err instanceof Error ? err.message : "Failed to purchase game");
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   useEffect(() => {
@@ -363,47 +429,64 @@ export function GamePage() {
         </div>
       </div>
 
-      {gameObject?.data?.content?.fields?.value?.fields && (
+      {getGameFields() && (
         <div className="bg-[#1a1a1a] rounded-lg p-6 max-w-[960px] w-full">
           <div className="grid gap-6">
             <div className="border-b border-gray-700 pb-4 gap-y-4 flex flex-col">
-              <div
-                className="flex flex-row justify-between align-middle"
-                // style={{ display: "flex", alignItems: "center", gap: "1rem" }}
-              >
+              <div className="flex flex-row justify-between align-middle">
                 <span className="text-3xl font-bold">
-                  {gameObject.data.content.fields.value.fields.title}
+                  {getGameFields()?.title}
                 </span>
                 <button
-                  className="px-4 py-2 bg-[#8A2BE2] text-white rounded-full hover:bg-[#9B4AE6] transition-colors"
-                  onClick={() => {
-                    // Add your purchase logic here
-                    console.log("Buy button clicked");
-                  }}
+                  className="px-4 py-2 bg-[#8A2BE2] text-white rounded-full hover:bg-[#9B4AE6] transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  onClick={handlePurchase}
+                  disabled={purchasing || !getGameFields()?.price}
                 >
-                  <span className="font-medium">Support</span>
+                  <span className="font-medium">
+                    {purchasing ? (
+                      <div className="flex items-center gap-2">
+                        <svg
+                          className="animate-spin h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Processing...
+                      </div>
+                    ) : (
+                      "Support"
+                    )}
+                  </span>
                 </button>
               </div>
-              <p className="text-gray-400">
-                {gameObject.data.content.fields.value.fields.description}
-              </p>
+              <p className="text-gray-400">{getGameFields()?.description}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <p className="text-gray-400">Developer</p>
                 <p className="text-white font-mono">
-                  {formatAddress(
-                    gameObject.data.content.fields.value.fields.developer,
-                  )}
+                  {formatAddress(getGameFields()?.developer || "")}
                 </p>
               </div>
               <div className="space-y-2">
                 <p className="text-gray-400">Price</p>
                 <p className="text-white font-bold">
-                  {formatSuiPrice(
-                    gameObject.data.content.fields.value.fields.price,
-                  )}
+                  {formatSuiPrice(getGameFields()?.price || "0")}
                 </p>
               </div>
             </div>
@@ -412,14 +495,12 @@ export function GamePage() {
               <div className="space-y-2">
                 <p className="text-gray-400">Game ID</p>
                 <p className="text-white font-mono">
-                  {gameObject.data.content.fields.value.fields.game_id}
+                  {getGameFields()?.game_id}
                 </p>
               </div>
               <div className="space-y-2">
                 <p className="text-gray-400">Version</p>
-                <p className="text-white">
-                  {gameObject.data.content.fields.value.fields.current_version}
-                </p>
+                <p className="text-white">{getGameFields()?.current_version}</p>
               </div>
             </div>
           </div>
