@@ -32,6 +32,17 @@ const GameSkeleton = () => (
   </div>
 );
 
+// Add this helper function near the top of the file
+const formatSuiPrice = (mist: string): string => {
+  const sui = Number(mist) / 1000000000;
+  return `${sui.toFixed(2)} SUI`;
+};
+
+// Add this helper function to format addresses
+const formatAddress = (address: string): string => {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+};
+
 export function GamePage() {
   const { gameId } = useParams();
   const suiClient = useSuiClient();
@@ -326,68 +337,10 @@ export function GamePage() {
   }, [gameId, gameObject]);
 
   return (
-    // <div className="flex flex-col items-center w-full">
-    //   <div className="flex flex-col items-center w-full max-w-[960px] ">
-    //     <motion.div
-    //       initial={{ opacity: 0, y: 20 }}
-    //       animate={{ opacity: 1, y: 0 }}
-    //       transition={{ duration: 0.3 }}
-    //       className="w-full"
-    //     >
-    //       <div className="w-full bg-[#252525] min-h-[720px] flex items-center justify-center">
-    //         {loading && !isUnityGame && <GameSkeleton />}
-
-    //         {error && (
-    //           <div className="text-red-500 p-4 bg-red-500/10 rounded-lg">
-    //             <p className="font-semibold">Error</p>
-    //             <p className="text-sm opacity-90">{error}</p>
-    //           </div>
-    //         )}
-
-    //         {blobContent && !loading && !error && !isUnityGame && (
-    //           <div className="w-full overflow-hidden rounded-lg">
-    //             <img
-    //               src={blobContent}
-    //               alt="Game content"
-    //               className="w-full h-auto rounded-lg"
-    //             />
-    //           </div>
-    //         )}
-
-    //         {isUnityGame && !loading && !error && (
-    //           <div id="unity-container" className=" flex justify-center w-full">
-    //             <div className="relative">
-    //               <canvas
-    //                 id="unity-canvas"
-    //                 width={960}
-    //                 height={480}
-    //                 tabIndex={-1}
-    //                 className=""
-    //                 // style={{ width: "960px", height: "720px" }}
-    //               ></canvas>
-    //               <div id="unity-loading-bar">
-    //                 <div id="unity-logo"></div>
-    //                 <div id="unity-progress-bar-empty">
-    //                   <div id="unity-progress-bar-full"></div>
-    //                 </div>
-    //               </div>
-    //               <div id="unity-warning"> </div>
-    //               <div id="unity-footer">
-    //                 <div id="unity-logo-title-footer"></div>
-    //                 <div id="unity-fullscreen-button"></div>
-    //               </div>
-    //             </div>
-    //           </div>
-    //         )}
-    //       </div>
-    //       <h1 className="text-2xl font-bold mb-6 text-center">{gameTitle}</h1>
-    //     </motion.div>
-    //   </div>
-    // </div>
     <div className="flex flex-col items-center w-full gap-y-4">
       <div className="flex flex-col items-center w-full max-w-[960px]">
-        <div id="unity-container" className="flex  w-full">
-          <div className="relative ">
+        <div id="unity-container" className="flex w-full">
+          <div className="relative">
             <canvas
               id="unity-canvas"
               width={1920}
@@ -409,7 +362,69 @@ export function GamePage() {
           </div>
         </div>
       </div>
-      <div className="bg-blue-500 max-w-[960px] w-full">asdf</div>
+
+      {gameObject?.data?.content?.fields?.value?.fields && (
+        <div className="bg-[#1a1a1a] rounded-lg p-6 max-w-[960px] w-full">
+          <div className="grid gap-6">
+            <div className="border-b border-gray-700 pb-4 gap-y-4 flex flex-col">
+              <div
+                className="flex flex-row justify-between align-middle"
+                // style={{ display: "flex", alignItems: "center", gap: "1rem" }}
+              >
+                <span className="text-3xl font-bold">
+                  {gameObject.data.content.fields.value.fields.title}
+                </span>
+                <button
+                  className="px-4 py-2 bg-[#8A2BE2] text-white rounded-full hover:bg-[#9B4AE6] transition-colors"
+                  onClick={() => {
+                    // Add your purchase logic here
+                    console.log("Buy button clicked");
+                  }}
+                >
+                  <span className="font-medium">Support</span>
+                </button>
+              </div>
+              <p className="text-gray-400">
+                {gameObject.data.content.fields.value.fields.description}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <p className="text-gray-400">Developer</p>
+                <p className="text-white font-mono">
+                  {formatAddress(
+                    gameObject.data.content.fields.value.fields.developer,
+                  )}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-gray-400">Price</p>
+                <p className="text-white font-bold">
+                  {formatSuiPrice(
+                    gameObject.data.content.fields.value.fields.price,
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <p className="text-gray-400">Game ID</p>
+                <p className="text-white font-mono">
+                  {gameObject.data.content.fields.value.fields.game_id}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-gray-400">Version</p>
+                <p className="text-white">
+                  {gameObject.data.content.fields.value.fields.current_version}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
