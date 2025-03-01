@@ -201,6 +201,14 @@ export function HomePage() {
     navigate(`/game/${gameId}`);
   };
 
+  // Add handlePlayNow function
+  const handlePlayNow = () => {
+    if (gamesTable?.nextCursor) {
+      // Use the nextCursor value which points to the last game's objectId
+      navigate(`/game/${gamesTable.nextCursor}`);
+    }
+  };
+
   return (
     <div className="flex flex-col w-full min-h-screen bg-[#1a1a1a] text-white">
       {/* Hero Section */}
@@ -223,6 +231,7 @@ export function HomePage() {
             <Button
               size="lg"
               className="bg-[#8A2BE2] hover:bg-[#9B4AE6] text-white font-bold cursor-pointer"
+              onClick={handlePlayNow}
             >
               <span className="font-bold">Play Now</span>
             </Button>
