@@ -337,7 +337,7 @@ export function GamePage() {
   }, [gameId, gameObject]);
 
   return (
-    <div className="flex flex-col items-center w-full gap-y-4">
+    <div className="flex flex-col items-center w-full gap-y-4 pb-12">
       <div className="flex flex-col items-center w-full max-w-[960px]">
         <div id="unity-container" className="flex w-full">
           <div className="relative">
