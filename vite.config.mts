@@ -11,4 +11,11 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Prevent type checking during build for faster deployments
+
+    skipTypeCheck: true,
+    // Reduce build time by not generating source maps
+    sourcemap: false,
+  },
 });
