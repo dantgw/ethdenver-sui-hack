@@ -166,7 +166,6 @@ export function HomePage() {
     try {
       console.log("fetchGames");
       console.log("data", data);
-
       const tableId =
         "0x0e3084d694e47e43d1f987d69cf40a434916475b0bbce6f4d6425fdc75364089";
 
@@ -177,10 +176,10 @@ export function HomePage() {
         value: gameId,
       };
 
-      const gameData = await suiClient.getDynamicFieldObject({
-        parentId: tableId,
-        name: dynamicFieldName,
-      });
+      // const gameData = await suiClient.getDynamicFieldObject({
+      //   parentId: tableId,
+      //   name: dynamicFieldName,
+      // });
 
       // To get all games, you can use getDynamicFields
       const allGames = await suiClient.getDynamicFields({
@@ -267,6 +266,7 @@ export function HomePage() {
               <div
                 key={game.id}
                 className="relative rounded-lg overflow-hidden group cursor-pointer"
+                onClick={handlePlayNow}
               >
                 <img
                   src={game.image}
@@ -376,6 +376,7 @@ export function HomePage() {
               <div
                 key={game.id}
                 className="bg-[#2a2a2a] rounded-lg overflow-hidden group cursor-pointer"
+                onClick={handlePlayNow}
               >
                 <div className="relative">
                   <img
