@@ -29,7 +29,7 @@ interface SuiGameFields {
 // Skeleton loader component
 const GameSkeleton = () => (
   <div className="animate-pulse w-full">
-    <div className="h-8 w-full bg-gray-700 rounded mb-6 mx-auto"></div>
+    <img src={"/animations/loading.gif"} />
   </div>
 );
 
@@ -376,7 +376,6 @@ export function GamePage() {
                   <div id="unity-footer">
                     <div id="unity-logo-title-footer"></div>
                     <div id="unity-fullscreen-button"></div>
-                    <div id="unity-build-title">{gameTitle}</div>
                   </div>
                 </div>
               </div>
