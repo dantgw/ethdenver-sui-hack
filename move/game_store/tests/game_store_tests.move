@@ -127,15 +127,25 @@ module game_store::game_store_tests {
                 ts::ctx(&mut scenario)
             );
 
-            // Clean up - use burn_for_testing instead of destroy_for_testing
+            // Verify payment was made (coin should be empty)
+            assert_eq(coin::value(&coin), 0);
+
+            // Clean up remaining coin
             coin::burn_for_testing(coin);
             ts::return_shared(store_obj);
         };
 
-        // Add a new transaction to verify the license
+        // Verify the developer received the payment
+        ts::next_tx(&mut scenario, DEVELOPER);
+        {
+            let coins = ts::take_from_sender<Coin<SUI>>(&scenario);
+            assert_eq(coin::value(&coins), GAME_PRICE);
+            ts::return_to_sender(&scenario, coins);
+        };
+
+        // Verify the license
         ts::next_tx(&mut scenario, PLAYER);
         {
-            // Verify player received the license
             assert!(ts::has_most_recent_for_address<GameLicense>(PLAYER), 0);
         };
         ts::end(scenario);

@@ -241,9 +241,9 @@ module game_store::store {
             let price = option::borrow(&game.price);
             assert!(coin::value(payment) >= *price, EInsufficientFunds);
 
-            // Transfer payment
+            // Transfer full payment to developer
             let paid = coin::split(payment, *price, ctx);
-            coin::join(&mut store.profits, paid);
+            transfer::public_transfer(paid, game.developer);
         };
 
         // Create and transfer game license to buyer
