@@ -52,8 +52,7 @@ function App() {
           <Route path="/upload" element={<UploadPage />} />
           <Route path="/blob/:blobId" element={<BlobPage />} />
           <Route path="/game/:gameId" element={<GamePage />} />
-
-          <Route path="/game" element={<UnityGamePage />} />
+          <Route path="/unitygame" element={<UnityGamePage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

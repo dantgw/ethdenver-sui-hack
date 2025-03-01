@@ -68,15 +68,14 @@ export function UnityGamePage() {
   return (
     <div className="flex flex-col items-center w-full">
       <div className="flex flex-col items-center w-full max-w-[960px]">
-        <div id="unity-container" className="flex justify-center w-full">
-          <div className="relative">
+        <div id="unity-container" className="flex  w-full">
+          <div className="relative ">
             <canvas
               id="unity-canvas"
-              width={960}
-              height={720}
+              width={1920}
+              height={1080}
               tabIndex={-1}
               className=""
-              style={{ width: "960px", height: "720px" }}
             ></canvas>
             <div id="unity-loading-bar">
               <div id="unity-logo"></div>

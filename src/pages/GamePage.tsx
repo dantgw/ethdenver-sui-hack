@@ -1,5 +1,4 @@
 import { useSuiClient, useSuiClientQuery } from "@mysten/dapp-kit";
-import { motion } from "framer-motion";
 import JSZip from "jszip";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -327,63 +326,90 @@ export function GamePage() {
   }, [gameId, gameObject]);
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <div className="flex flex-col items-center w-full max-w-[960px] ">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="w-full"
-        >
-          <div className="w-full bg-[#252525] min-h-[720px] flex items-center justify-center">
-            {loading && !isUnityGame && <GameSkeleton />}
+    // <div className="flex flex-col items-center w-full">
+    //   <div className="flex flex-col items-center w-full max-w-[960px] ">
+    //     <motion.div
+    //       initial={{ opacity: 0, y: 20 }}
+    //       animate={{ opacity: 1, y: 0 }}
+    //       transition={{ duration: 0.3 }}
+    //       className="w-full"
+    //     >
+    //       <div className="w-full bg-[#252525] min-h-[720px] flex items-center justify-center">
+    //         {loading && !isUnityGame && <GameSkeleton />}
 
-            {error && (
-              <div className="text-red-500 p-4 bg-red-500/10 rounded-lg">
-                <p className="font-semibold">Error</p>
-                <p className="text-sm opacity-90">{error}</p>
-              </div>
-            )}
+    //         {error && (
+    //           <div className="text-red-500 p-4 bg-red-500/10 rounded-lg">
+    //             <p className="font-semibold">Error</p>
+    //             <p className="text-sm opacity-90">{error}</p>
+    //           </div>
+    //         )}
 
-            {blobContent && !loading && !error && !isUnityGame && (
-              <div className="w-full overflow-hidden rounded-lg">
-                <img
-                  src={blobContent}
-                  alt="Game content"
-                  className="w-full h-auto rounded-lg"
-                />
-              </div>
-            )}
+    //         {blobContent && !loading && !error && !isUnityGame && (
+    //           <div className="w-full overflow-hidden rounded-lg">
+    //             <img
+    //               src={blobContent}
+    //               alt="Game content"
+    //               className="w-full h-auto rounded-lg"
+    //             />
+    //           </div>
+    //         )}
 
-            {isUnityGame && !loading && !error && (
-              <div id="unity-container" className=" flex justify-center w-full">
-                <div className="relative">
-                  <canvas
-                    id="unity-canvas"
-                    width={960}
-                    height={720}
-                    tabIndex={-1}
-                    className=""
-                    style={{ width: "960px", height: "720px" }}
-                  ></canvas>
-                  <div id="unity-loading-bar">
-                    <div id="unity-logo"></div>
-                    <div id="unity-progress-bar-empty">
-                      <div id="unity-progress-bar-full"></div>
-                    </div>
-                  </div>
-                  <div id="unity-warning"> </div>
-                  <div id="unity-footer">
-                    <div id="unity-logo-title-footer"></div>
-                    <div id="unity-fullscreen-button"></div>
-                  </div>
-                </div>
+    //         {isUnityGame && !loading && !error && (
+    //           <div id="unity-container" className=" flex justify-center w-full">
+    //             <div className="relative">
+    //               <canvas
+    //                 id="unity-canvas"
+    //                 width={960}
+    //                 height={480}
+    //                 tabIndex={-1}
+    //                 className=""
+    //                 // style={{ width: "960px", height: "720px" }}
+    //               ></canvas>
+    //               <div id="unity-loading-bar">
+    //                 <div id="unity-logo"></div>
+    //                 <div id="unity-progress-bar-empty">
+    //                   <div id="unity-progress-bar-full"></div>
+    //                 </div>
+    //               </div>
+    //               <div id="unity-warning"> </div>
+    //               <div id="unity-footer">
+    //                 <div id="unity-logo-title-footer"></div>
+    //                 <div id="unity-fullscreen-button"></div>
+    //               </div>
+    //             </div>
+    //           </div>
+    //         )}
+    //       </div>
+    //       <h1 className="text-2xl font-bold mb-6 text-center">{gameTitle}</h1>
+    //     </motion.div>
+    //   </div>
+    // </div>
+    <div className="flex flex-col items-center w-full gap-y-4">
+      <div className="flex flex-col items-center w-full max-w-[960px]">
+        <div id="unity-container" className="flex  w-full">
+          <div className="relative ">
+            <canvas
+              id="unity-canvas"
+              width={1920}
+              height={1080}
+              tabIndex={-1}
+              className=""
+            ></canvas>
+            <div id="unity-loading-bar">
+              <div id="unity-logo"></div>
+              <div id="unity-progress-bar-empty">
+                <div id="unity-progress-bar-full"></div>
               </div>
-            )}
+            </div>
+            <div id="unity-warning"> </div>
+            <div id="unity-footer">
+              <div id="unity-logo-title-footer"></div>
+              <div id="unity-fullscreen-button"></div>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold mb-6 text-center">{gameTitle}</h1>
-        </motion.div>
+        </div>
       </div>
+      <div className="bg-blue-500 max-w-[960px] w-full">asdf</div>
     </div>
   );
 }
